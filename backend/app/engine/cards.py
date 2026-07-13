@@ -38,6 +38,22 @@ class Player:
     def pick_up_card(self):
         return self.game_state.draw_from_deck()
     
+    def reveal_cards(self):
+        print(f'Revealed Cards {self.hand[2]} and {self.hand[3]}')
+
+    def play_turn(self):
+        new_card = self.pick_up_card()
+        print(f"You drew: {new_card}")
+
+        choice = input("Would you like to swap or discard? (s/d)")
+        if choice == 'd':
+            self.game_state.discard_chosen(new_card)
+        elif choice == 's':
+            swap_choice = int(input(
+                "What card would you like to swap with? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"
+            ))
+            self.game_state.swap_card_picked(swap_choice, new_card)
+
     def look_at_own_card(self, card_chosen):
         print(f'Own card: {card_chosen}')
         #Include in data backend!!! (log what player sees)
@@ -51,13 +67,119 @@ class Player:
         self.hand.append(card)
         self.total += card.value
         print(f'Card added to hand')
+    
+    def react_to_discard(self):
+        choice = input("Do you have matching card?(y/n or stop to end round)")
+        while choice != 'stop':
+            if choice == 'y':
+                card_choice = int(input("Which card? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+                if self.hand[card_choice].value == self.game_state.discard_pile[-1].value:
+                    played_card = self.hand.pop(card_choice)
+                    self.total -= played_card.value
+                    self.game_state.discard_chosen(played_card)
+                else:
+                    self.penalty()
+            if choice == 'n':
+                print("You chose no")
 
+            choice = input("Does your opponent have matching card?(y/n)")
+            if choice == 'y':
+                opponent = int(input("Which opponent? (1,2,3)"))
+                opponent_card = int(input("Which card? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+                if self.game_state.players[opponent].hand[opponent_card].value == self.game_state.discard_pile[-1].value:
+                    matched_card = self.game_state.players[opponent].hand.pop(opponent_card)
+                    self.game_state.players[opponent].total -= matched_card.value
+                    self.game_state.discard_chosen(matched_card)
+
+                    give_choice = int(input(
+                        "Which of your cards would you like to give your opponent? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"
+                    ))
+                    given_card = self.hand.pop(give_choice)
+                    self.total -= given_card.value
+                    self.game_state.players[opponent].hand.append(given_card)
+                    self.game_state.players[opponent].total += given_card.value
+                else:
+                    self.penalty()
+            if choice == 'n':
+                print("You chose no")
+
+            choice = input("Do you have matching card?(y/n or stop to end round)")
+    
+    def use_power_card(self):
+        if not self.game_state.discard_pile:
+            return
+
+        if self.game_state.discard_pile[-1].value > 7:
+            self.game_state.power_time = True
+
+        if self.game_state.power_time:
+            top_value = self.game_state.discard_pile[-1].value
+
+            if top_value in (7, 8):
+                choice = int(input("Which of YOUR cards would you like to look at? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+                print(self.game_state.players[self.game_state.current_turn_player].hand[choice])
+
+            if top_value in (9, 10):
+                opponent = int(input("Which opponent? (1,2,3)"))
+                choice = int(input("Which of YOUR OPPONENTS cards would you like to look at? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+                print(self.game_state.players[opponent].hand[choice].value)
+
+            if top_value == 11:
+                print("turn skipped")
+                self.game_state.current_turn_player = (self.game_state.current_turn_player + 1) % 4
+
+            if top_value == 12:
+                print("blind swap")
+                personal = int(input("Which of YOUR cards would you like to swap? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+                opp_idx = int(input("Which opponent would you like to swap with? (1,2,3)"))
+                opp_card_idx = int(input("Which of your Opponents cards would you like to swap? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+
+                opp_card = self.game_state.players[opp_idx].hand[opp_card_idx]
+                my_card = self.game_state.players[self.game_state.current_turn_player].hand[personal]
+
+                self.game_state.players[opp_idx].hand[opp_card_idx] = my_card
+                self.game_state.players[opp_idx].total += my_card.value - opp_card.value
+                self.game_state.players[self.game_state.current_turn_player].hand[personal] = opp_card
+                self.game_state.players[self.game_state.current_turn_player].total += opp_card.value - my_card.value
+
+            if top_value == 13:
+                print("seen swap")
+                personal = int(input("Which of YOUR cards would you like to look at? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+                print(self.game_state.players[self.game_state.current_turn_player].hand[personal])
+                opp_idx = int(input("Which opponent would you like to look at their card? (1,2,3)"))
+                opp_card_idx = int(input("Which of your Opponents cards would you like to look? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
+                print(self.game_state.players[opp_idx].hand[opp_card_idx])
+
+                swap_yes = input("Would you like to swap? (y/n)")
+                if swap_yes == "y":
+                    opp_card = self.game_state.players[opp_idx].hand[opp_card_idx]
+                    my_card = self.game_state.players[self.game_state.current_turn_player].hand[personal]
+                    self.game_state.players[opp_idx].hand[opp_card_idx] = my_card
+                    self.game_state.players[opp_idx].total += my_card.value - opp_card.value
+                    self.game_state.players[self.game_state.current_turn_player].hand[personal] = opp_card
+                    self.game_state.players[self.game_state.current_turn_player].total += opp_card.value - my_card.value
+
+    def call_cabo_decision(self):
+        choice = input("Would you like to call Cabo? (y/n)")
+        if choice == 'y':
+            return True
+        else:
+            return False
+            
 @dataclass
 class Opponent(Player):
+    def reveal_cards(self):
+        pass
     def play_turn(self):
         new_card = self.pick_up_card()
         print(f"{self.name} drew a card and discarded it.")
         self.game_state.discard_chosen(new_card)
+    def react_to_discard(self):
+        pass
+    def use_power_card(self):
+        pass
+    def call_cabo_decision(self):
+        return False
 
 @dataclass
 class Game_State:
@@ -129,120 +251,22 @@ class Game_State:
         times_up = True
         print("Times up!")
 
-def human_turn(game_state):
+def turn(game_state):
     player = game_state.players[game_state.current_turn_player]
-
-    new_card = player.pick_up_card()
-    print(f"You drew: {new_card}")
-
-    choice = input("Would you like to swap or discard? (s/d)")
-    if choice == 'd':
-        game_state.discard_chosen(new_card)
-    elif choice == 's':
-        swap_choice = int(input(
-            "What card would you like to swap with? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"
-        ))
-        game_state.swap_card_picked(swap_choice, new_card)
-
+    player.play_turn()
     reaction_phase(game_state)
     power_card_phase(game_state)
 
-
-def ai_turn(game_state):
-    player = game_state.players[game_state.current_turn_player]
-    player.play_turn()
-
 def reaction_phase(game_state):
-    choice = input("Do you have matching card?(y/n or stop to end round)")
-    while choice != 'stop':
-        if choice == 'y':
-            card_choice = int(input("Which card? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-            played_card = game_state.players[game_state.current_turn_player].hand.pop(card_choice)
-            game_state.players[game_state.current_turn_player].total -= played_card.value
-            game_state.discard_chosen(played_card)
-        if choice == 'n':
-            print("You chose no")
-
-        choice = input("Does your opponent have matching card?(y/n)")
-        if choice == 'y':
-            opponent = int(input("Which opponent? (1,2,3)"))
-            opponent_card = int(input("Which card? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-            if game_state.players[opponent].hand[opponent_card].value == game_state.discard_pile[-1].value:
-                matched_card = game_state.players[opponent].hand.pop(opponent_card)
-                game_state.players[opponent].total -= matched_card.value
-                game_state.discard_chosen(matched_card)
-
-                give_choice = int(input(
-                    "Which of your cards would you like to give your opponent? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"
-                ))
-                given_card = game_state.players[game_state.current_turn_player].hand.pop(give_choice)
-                game_state.players[game_state.current_turn_player].total -= given_card.value
-                game_state.players[opponent].hand.append(given_card)
-                game_state.players[opponent].total += given_card.value
-            else:
-                game_state.players[game_state.current_turn_player].penalty()
-        if choice == 'n':
-            print("You chose no")
-
-        choice = input("Do you have matching card?(y/n or stop to end round)")
+    print("DEBUG: entered reaction_phase")
+    for player in game_state.players:
+        print(f"DEBUG: asking {player.name} to react")
+        player.react_to_discard()
 
 
 def power_card_phase(game_state):
-    if not game_state.discard_pile:
-        return
-
-    if game_state.discard_pile[-1].value > 7:
-        game_state.power_time = True
-
-    if game_state.power_time:
-        top_value = game_state.discard_pile[-1].value
-
-        if top_value in (7, 8):
-            choice = int(input("Which of YOUR cards would you like to look at? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-            print(game_state.players[game_state.current_turn_player].hand[choice])
-
-        if top_value in (9, 10):
-            opponent = int(input("Which opponent? (1,2,3)"))
-            choice = int(input("Which of YOUR OPPONENTS cards would you like to look at? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-            print(game_state.players[opponent].hand[choice].value)
-
-        if top_value == 11:
-            print("turn skipped")
-            game_state.current_turn_player = (game_state.current_turn_player + 1) % 4
-
-        if top_value == 12:
-            print("blind swap")
-            personal = int(input("Which of YOUR cards would you like to swap? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-            opp_idx = int(input("Which opponent would you like to swap with? (1,2,3)"))
-            opp_card_idx = int(input("Which of your Opponents cards would you like to swap? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-
-            opp_card = game_state.players[opp_idx].hand[opp_card_idx]
-            my_card = game_state.players[game_state.current_turn_player].hand[personal]
-
-            game_state.players[opp_idx].hand[opp_card_idx] = my_card
-            game_state.players[opp_idx].total += my_card.value - opp_card.value
-            game_state.players[game_state.current_turn_player].hand[personal] = opp_card
-            game_state.players[game_state.current_turn_player].total += opp_card.value - my_card.value
-
-        if top_value == 13:
-            print("seen swap")
-            personal = int(input("Which of YOUR cards would you like to look at? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-            print(game_state.players[game_state.current_turn_player].hand[personal])
-            opp_idx = int(input("Which opponent would you like to look at their card? (1,2,3)"))
-            opp_card_idx = int(input("Which of your Opponents cards would you like to look? Top-left(0) Top-right(1) Bottom-left(2) Bottom-right(3)"))
-            print(game_state.players[opp_idx].hand[opp_card_idx])
-
-            swap_yes = input("Would you like to swap? (y/n)")
-            if swap_yes == "y":
-                opp_card = game_state.players[opp_idx].hand[opp_card_idx]
-                my_card = game_state.players[game_state.current_turn_player].hand[personal]
-                game_state.players[opp_idx].hand[opp_card_idx] = my_card
-                game_state.players[opp_idx].total += my_card.value - opp_card.value
-                game_state.players[game_state.current_turn_player].hand[personal] = opp_card
-                game_state.players[game_state.current_turn_player].total += opp_card.value - my_card.value
-
-        game_state.power_time = False
-
+    player = game_state.players[game_state.current_turn_player]
+    player.use_power_card()
 
 def main():
     game_state = Game_State()
@@ -251,7 +275,9 @@ def main():
 
     print(f'Initial card count: {len(game_state.deck_order)}')
     print("START GAME")
-    print(f'Revealed Cards {game_state.players[0].hand[2]} and {game_state.players[0].hand[3]}')
+
+    for player in game_state.players:
+        player.reveal_cards()
 
     while game_state.game_winner == "":
         current_index = game_state.current_turn_player
@@ -259,22 +285,17 @@ def main():
 
         print(f"\n--- Turn {game_state.current_turn_number}: {current_player.name} ---")
 
-        if isinstance(current_player, Opponent):
-            pass  # AI Cabo-calling logic goes here later
-        else:
-            choice = input("Would you like to call Cabo? (y/n)")
-            if choice == 'y':
-                print(f"{current_player.name} called Cabo!")
-                game_state.game_finished(current_player.name)
-                break
+        end_game = current_player.call_cabo_decision()
+        if end_game:
+            print(f"{current_player.name} called Cabo!")
+            game_state.game_finished(current_player.name)
+            break
 
-        if isinstance(current_player, Opponent):
-            ai_turn(game_state)
-        else:
-            human_turn(game_state)
-
-        game_state.current_turn_number += 1
+        turn(game_state)
+        
         game_state.current_turn_player = (game_state.current_turn_player + 1) % 4
+        if game_state.current_turn_player == 0:
+            game_state.current_turn_number += 1
 
     print(f"\nFinal winner: {game_state.game_winner}")
 
