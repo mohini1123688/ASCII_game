@@ -15,14 +15,14 @@ class Player:
         return card
     
     def reveal_cards(self):
-        print(f'Revealed Cards {self.hand[2]} and {self.hand[3]}')
+        #print(f'Revealed Cards {self.hand[2]} and {self.hand[3]}')
         self.game_state.logger.log("initial_reveal", player=self.name,
             card2_value=self.hand[2].value, card2_suit=self.hand[2].suit,
             card3_value=self.hand[3].value, card3_suit=self.hand[3].suit)
 
     def play_turn(self):
         new_card = self.pick_up_card()
-        print(f"You drew: {new_card}")
+        #print(f"You drew: {new_card}")
 
         choice = input("Would you like to swap or discard? (s/d)")
         if choice == 'd':
@@ -107,6 +107,10 @@ class Player:
         if self.game_state.discard_pile[-1].value > 7:
             self.game_state.power_time = True
             self.game_state.logger.log("power_time_activated", player=self.name)
+        
+        choice = int(input("Would you like to use your power card?"))
+        if choice == 'n':
+            self.game_state.power_time = False
 
         if self.game_state.power_time:
             top_value = self.game_state.discard_pile[-1].value
@@ -173,14 +177,14 @@ class Player:
             return False
             
 @dataclass
-class Opponent(Player):
+class Random_Opponent(Player):
     def reveal_cards(self):
         self.game_state.logger.log("initial_reveal", player=self.name,
             card2_value=self.hand[2].value, card2_suit=self.hand[2].suit,
             card3_value=self.hand[3].value, card3_suit=self.hand[3].suit)
     def play_turn(self):
         new_card = self.pick_up_card()
-        print(f"{self.name} drew a card and discarded it.")
+        #print(f"{self.name} drew a card and discarded it.")
         self.game_state.logger.log("player_discard", player=self.name, discarded_card_value=new_card.value, discarded_card_suit=new_card.suit)
         self.game_state.discard_chosen(new_card)
     def react_to_discard(self):
@@ -188,4 +192,7 @@ class Opponent(Player):
     def use_power_card(self):
         pass
     def call_cabo_decision(self):
+        cabo_decision = random.random()
+        if cabo_decision > 0.8:
+            return True
         return False

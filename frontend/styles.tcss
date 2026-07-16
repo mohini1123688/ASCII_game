@@ -1,0 +1,161 @@
+Screen {
+    background: #01275f;
+}
+
+#table {
+    grid-size: 3 3;
+    grid-rows: 1fr 1fr 1fr;
+    grid-columns: 1fr 1fr 1fr;
+}
+
+.hand-columns {
+    height: auto;
+    align: center middle;
+}
+
+.hand-column {
+    height: auto;
+    align: center top;
+    margin: 0;
+}
+
+Button.card, Static.card {
+    width: 9;
+    height: 5;
+    min-width: 9;
+    min-height: 5;
+    border: none;
+    outline: none;
+    content-align: left top;
+    margin: 0;
+    padding: 0;
+    background: #01275f;
+    text-style: bold;
+}
+
+Button.card:hover, Button.card:focus {
+    background: #01275f;
+    border: none;
+    outline: none;
+    text-style: bold;
+}
+
+#deck-widget {
+    width: 9;
+    min-width: 9;
+    max-width: 9;
+}
+
+#deck-widget, #discard-widget, #drawn-card-widget {
+    border: none;
+    outline: none;
+}
+
+#deck-widget:hover, #deck-widget:focus,
+#discard-widget:hover, #discard-widget:focus {
+    border: none;
+    outline: none;
+    background: #01275f;
+}
+
+.red-suit {
+    color: #e05252;
+}
+
+.black-suit {
+    color: #d8d8d8;
+}
+
+.face-down {
+    color: #4a6fa5;
+}
+
+.drawn-card {
+    color: #2dd4bf;
+}
+
+.empty-slot {
+    color: #144a8c;
+}
+
+.player-name {
+    text-align: center;
+    text-style: bold;
+    color: #f5f5f5;
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+#center-pile {
+    align: center middle;
+    height: auto;
+    width: 100%;
+}
+
+.pile-label-row {
+    height: auto;
+    align: center middle;
+    width: auto;
+}
+
+.pile-label-row .pile-label {
+    width: auto;
+    text-align: center;
+    margin: 0 2;
+}
+
+.pile-card-row {
+    height: auto;
+    align: center top;
+    width: auto;
+}
+
+.pile-column {
+    height: auto;
+    width: auto;
+    align: center top;
+    margin: 0 1;
+}
+
+.pile-label {
+    text-style: bold;
+    color: #2dd4bf;
+    height: auto;
+}
+
+.pile-sublabel {
+    text-align: center;
+    text-style: bold;
+    color: #2dd4bf;
+    height: auto;
+    margin: 1 0;
+}
+
+#discard-widget {
+    margin: 0 1;
+}
+
+#scoreboard-panel {
+    align: center middle;
+    height: 100%;
+    width: 100%;
+}
+
+#scoreboard {
+    height: auto;
+    max-height: 8;
+}
+
+.help-box {
+    border: round #2dd4bf;
+    color: #f5f5f5;
+    padding: 1 2;
+    width: 90%;
+    height: auto;
+    align: center top;
+    margin: 2;
+}
+
+.empty {
+    background: transparent;
+}

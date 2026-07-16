@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass, field
-from bots import Player, Opponent
+from bots import Player, Random_Opponent
 from cards import Card, Deck
 from storage.logger import GameLogger
 
@@ -18,19 +18,22 @@ class Game_State:
 
     def __post_init__(self):
             self.players = [
-                Player("Player1", self),
-                Opponent("Opponent1", self),
-                Opponent("Opponent2", self),
-                Opponent("Opponent3", self)
+                Random_Opponent("Opponent0", self),
+                Random_Opponent("Opponent1", self),
+                Random_Opponent("Opponent2", self),
+                Random_Opponent("Opponent3", self)
             ]
 
     def draw_from_deck(self):
+        times_reshuffled = 0
         if not self.deck_order:
+            times_reshuffled = times_reshuffled + 1
             top_card = self.discard_pile.pop()
             self.deck_order = self.discard_pile
             self.discard_pile = [top_card]
             random.shuffle(self.deck_order)
-            print("Deck was empty — reshuffled discard pile into a new deck.")
+            self.logger.log("deck_reshuffled", times_reshuffled = {times_reshuffled})
+            #print("Deck was empty — reshuffled discard pile into a new deck.")
         return self.deck_order.pop()
     
     def deal_cards(self):
@@ -41,7 +44,7 @@ class Game_State:
     
     def discard_chosen(self, new_card):
         self.discard_pile.append(new_card)
-        print(f"Card discarded: {self.discard_pile[-1]}")
+        #print(f"Card discarded: {self.discard_pile[-1]}")
 
     def swap_card_picked(self, choice, new_card):
         old_card = self.players[self.current_turn_player].hand[choice]
@@ -68,13 +71,8 @@ class Game_State:
             tied_players = [random.choice(tied_players)]
 
         self.game_winner = tied_players[0].name
-        print(f"Winner is... {self.game_winner}")
-            
-    def ten_second_timer(self):
-        print("10 second timer starting!")
-        global times_up 
-        times_up = True
-        print("Times up!")
+        #print(f"Winner is... {self.game_winner}")
+        
 
 def turn(game_state):
     player = game_state.players[game_state.current_turn_player]
@@ -91,6 +89,7 @@ def power_card_phase(game_state):
     player = game_state.players[game_state.current_turn_player]
     player.use_power_card()
 
+
 def main():
     game_state = Game_State()
     game_deck = Deck(game_state)
@@ -98,8 +97,8 @@ def main():
     game_state.logger.log("game_start", seed=game_deck.seed)
     game_state.deal_cards()
 
-    print(f'Initial card count: {len(game_state.deck_order)}')
-    print("START GAME")
+    #print(f'Initial card count: {len(game_state.deck_order)}')
+    #print("START GAME")
 
     for player in game_state.players:
         player.reveal_cards()
@@ -109,11 +108,11 @@ def main():
         current_player = game_state.players[current_index]
         game_state.logger.log("curren_player_turn", player=current_player.name)
 
-        print(f"\n--- Turn {game_state.current_turn_number}: {current_player.name} ---")
+        #print(f"\n--- Turn {game_state.current_turn_number}: {current_player.name} ---")
 
         end_game = current_player.call_cabo_decision()
         if end_game:
-            print(f"{current_player.name} called Cabo!")
+            #print(f"{current_player.name} called Cabo!")
             game_state.logger.log("called_cabo", player=current_player.name)
             game_state.game_finished(current_player.name)
             break
@@ -124,7 +123,7 @@ def main():
         if game_state.current_turn_player == 0:
             game_state.current_turn_number += 1
 
-    print(f"\nFinal winner: {game_state.game_winner}")
+    #print(f"\nFinal winner: {game_state.game_winner}")
     game_state.logger.log("final_winner", player=game_state.game_winner)
     game_state.logger.close()
 
