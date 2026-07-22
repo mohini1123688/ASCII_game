@@ -29,5 +29,6 @@ class Deck:
     
     def shuffle_deck(self):
         shuffle_seed = random.Random(self.seed)
+        print(f"seed chosen for deck: {self.seed}")
         shuffle_seed.shuffle(self.cards)
 

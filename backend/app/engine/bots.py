@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass, field
-from cards import Card
+from engine.cards import Card
 
 @dataclass
 class Player:

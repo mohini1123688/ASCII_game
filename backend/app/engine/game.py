@@ -1,7 +1,7 @@
 import random
 from dataclasses import dataclass, field
-from bots import Player, Random_Opponent, Heuristic_Opponent
-from cards import Card, Deck
+from engine.bots import Player, Random_Opponent, Heuristic_Opponent
+from engine.cards import Card, Deck
 from storage.logger import GameLogger
 
 @dataclass
@@ -17,12 +17,13 @@ class Game_State:
     power_time: bool = False
 
     def __post_init__(self):
-            self.players = [
-                Heuristic_Opponent("Heuristic0", self),
-                Random_Opponent("Random1", self),
-                Random_Opponent("Random2", self),
-                Random_Opponent("Random3", self)
-            ]
+            if not self.players:
+                self.players = [
+                    Heuristic_Opponent("Heuristic0", self),
+                    Random_Opponent("Random1", self),
+                    Random_Opponent("Random2", self),
+                    Random_Opponent("Random3", self)
+                ]
 
     def draw_from_deck(self):
         times_reshuffled = 0
@@ -54,6 +55,7 @@ class Game_State:
         self.players[self.current_turn_player].total += new_card.value
     
     def game_finished(self, player_who_called):
+        print(f"called cabo {player_who_called}")
         min_score = min(player.total for player in self.players)
         tied_players = [p for p in self.players if p.total == min_score]
 
@@ -102,11 +104,11 @@ def power_card_phase(game_state):
     player.use_power_card()
 
 
-def main():
-    game_state = Game_State()
+def main(fresh_game_state):
+    game_state = fresh_game_state
     game_deck = Deck(game_state)
 
-    game_state.logger.log("game_start", seed=game_deck.seed)
+    game_state.logger.log("game_start", seed = game_deck.seed)
     game_state.deal_cards()
 
     #print(f'Initial card count: {len(game_state.deck_order)}')
@@ -141,6 +143,7 @@ def main():
     #print(f"\nFinal winner: {game_state.game_winner}")
     game_state.logger.log("final_winner", player=game_state.game_winner)
     game_state.logger.close()
+    return game_state.game_winner
 
 if __name__ == "__main__":
     main()
