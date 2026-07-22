@@ -55,7 +55,7 @@ class Game_State:
         self.players[self.current_turn_player].total += new_card.value
     
     def game_finished(self, player_who_called):
-        print(f"called cabo {player_who_called}")
+        #print(f"called cabo {player_who_called}")
         min_score = min(player.total for player in self.players)
         tied_players = [p for p in self.players if p.total == min_score]
 

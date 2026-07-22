@@ -11,8 +11,8 @@ class Random_Search_Opponent(Player):
         "cabo_known_ratio_threshold": 0.7,  # range: 0.5 to 1
         "cabo_avg_value_threshold": 4,      # range: 2 to 6
     })
-
     def reveal_cards(self):
+        #print(self.config["swap_margin"])
         self.game_state.logger.log("initial_reveal", player=self.name,
             card2_value=self.hand[0].value, card2_suit=self.hand[0].suit,
             card3_value=self.hand[1].value, card3_suit=self.hand[1].suit)
